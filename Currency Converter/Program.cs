@@ -35,17 +35,21 @@ internal class Program
             // process args
             if (!string.IsNullOrWhiteSpace(inputStr))
             {
-                string[] inputArgs = inputStr.Split();
+                try
+                {
+                    string[] inputArgs = inputStr.Split();
+                    float value = ParseInputValue(inputArgs[0]);
+                }
+                catch
+                {
+                }
+
             }
             else
             {
                 Console.WriteLine("WARNING - Please enter a value.");
             }
         }
-
-        float fromValue;
-
-
     }
 
     /**
@@ -79,6 +83,13 @@ internal class Program
         }
     }
 
+    /**
+     * <summary>
+     * Parses string to float
+     * </summary>
+     * <param name="value">input string</param>
+     * <returns>float value</returns>
+     */
     static float ParseInputValue(string value)
     {
         try
