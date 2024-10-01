@@ -2,35 +2,50 @@
 
 internal class Program
 {
-    private const string accessKey = "b29c4147dc4d701c6979e3ed57a81997";
-    private static async Task Main(string[] args)
+    private const string AccessKey = "b29c4147dc4d701c6979e3ed57a81997";
+    private static async Task Main()
     {
+        HashSet<string> exitKeywords = ["q", "quit", "exit"];
+
         using HttpClient client = new();
         client.DefaultRequestHeaders.Add("User-Agent", "Me - learning REST");
+        Console.WriteLine("Usage:\t [Value] [From] [To]");
 
-        // Start
-        await ProcessCurrenciesAsync(client);
-        Console.WriteLine("Type in the amount in Euro - e.g. 12,34");
-        Console.Write("> ");
-        string? inputStr = Console.ReadLine();
-        float fromValue;
-
-        try
+        string inputStr;
+        while (true)
         {
+            Console.Write("> ");
+            inputStr = Console.ReadLine() ?? ""; // ?? null-coalescing operator --> returns left value when it(left value) is not-null, otherwise right
+            inputStr = inputStr.ToLower().Trim();
+
+            // exit condition
+            if (exitKeywords.Contains(inputStr))
+            {
+                break;
+            }
+
+            // show help
+            if (inputStr == "help")
+            {
+                Console.WriteLine("Possible currencies:");
+                await ProcessCurrenciesAsync(client);
+                continue;
+            }
+
+            // process args
             if (!string.IsNullOrWhiteSpace(inputStr))
             {
-                fromValue = float.Parse(inputStr);
-                Console.WriteLine($"Your Value is {fromValue}");
+                string[] inputArgs = inputStr.Split();
             }
             else
             {
                 Console.WriteLine("WARNING - Please enter a value.");
             }
         }
-        catch (FormatException)
-        {
-            Console.WriteLine("ERROR - Please enter a value in the given format.");
-        }
+
+        float fromValue;
+
+
     }
 
     /**
@@ -42,7 +57,7 @@ internal class Program
     */
     static async Task ProcessCurrenciesAsync(HttpClient client)
     {
-        var jsonString = await client.GetStringAsync($"http://data.fixer.io/api/symbols?access_key={accessKey}");
+        var jsonString = await client.GetStringAsync($"http://data.fixer.io/api/symbols?access_key={AccessKey}");
         if (!string.IsNullOrEmpty(jsonString))
             ListCurrencies(jsonString);
     }
@@ -61,6 +76,24 @@ internal class Program
         foreach (JsonProperty prop in symbols.EnumerateObject())
         {
             Console.WriteLine($"{prop.Name} - {prop.Value}");
+        }
+    }
+
+    static float ParseInputValue(string value)
+    {
+        try
+        {
+            return float.Parse(value);
+        }
+        catch (FormatException)
+        {
+            Console.WriteLine("ERROR - Please enter a value in the given format.");
+            throw;
+        }
+        catch (ArgumentNullException)
+        {
+            Console.WriteLine("WARNING - Please enter a value.");
+            throw;
         }
     }
 }
