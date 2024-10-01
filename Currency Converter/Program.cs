@@ -40,10 +40,11 @@ internal class Program
                     string[] inputArgs = inputStr.Split();
                     float value = ParseInputValue(inputArgs[0]);
                 }
-                catch
+                catch (FormatException)
                 {
+                    Console.WriteLine("ERROR - Please enter a value in the given format.");
+                    throw;
                 }
-
             }
             else
             {
@@ -99,11 +100,6 @@ internal class Program
         catch (FormatException)
         {
             Console.WriteLine("ERROR - Please enter a value in the given format.");
-            throw;
-        }
-        catch (ArgumentNullException)
-        {
-            Console.WriteLine("WARNING - Please enter a value.");
             throw;
         }
     }
