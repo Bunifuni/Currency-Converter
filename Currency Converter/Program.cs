@@ -2,6 +2,7 @@
 
 internal class Program
 {
+    private const string accessKey = "b29c4147dc4d701c6979e3ed57a81997";
     private static async Task Main(string[] args)
     {
         using HttpClient client = new();
@@ -9,7 +10,7 @@ internal class Program
 
         // Start
         await ProcessCurrenciesAsync(client);
-        Console.WriteLine("Type in the amount in Euro(€) - e.g. 12,34");
+        Console.WriteLine("Type in the amount in Euro - e.g. 12,34");
         Console.Write("> ");
         string? inputStr = Console.ReadLine();
         float fromValue;
@@ -41,7 +42,7 @@ internal class Program
     */
     static async Task ProcessCurrenciesAsync(HttpClient client)
     {
-        var jsonString = await client.GetStringAsync("http://data.fixer.io/api/symbols?access_key=b29c4147dc4d701c6979e3ed57a81997");
+        var jsonString = await client.GetStringAsync($"http://data.fixer.io/api/symbols?access_key={accessKey}");
         if (!string.IsNullOrEmpty(jsonString))
             ListCurrencies(jsonString);
     }
