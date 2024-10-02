@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Collections;
+using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 internal class Program
 {
@@ -35,16 +38,10 @@ internal class Program
             // process args
             if (!string.IsNullOrWhiteSpace(inputStr))
             {
-                try
-                {
-                    string[] inputArgs = inputStr.Split();
-                    float value = ParseInputValue(inputArgs[0]);
-                }
-                catch (FormatException)
-                {
-                    Console.WriteLine("ERROR - Please enter a value in the given format.");
-                    throw;
-                }
+
+                string[] inputArgs = inputStr.Split();
+                float value = ParseInputValue(inputArgs[0]);
+
             }
             else
             {
@@ -99,8 +96,60 @@ internal class Program
         }
         catch (FormatException)
         {
-            Console.WriteLine("ERROR - Please enter a value in the given format.");
-            throw;
+            throw new FormatException("ERROR - Please enter a value in the given format.");
         }
+    }
+
+    static async float ExchangeValue(string from, string to, HttpClient client)
+    {
+        from = from.ToUpper();
+        to = to.ToUpper();
+        string currencyPattern = @"^[A-Z][A-Z][A-Z]$";
+        if (Regex.IsMatch(from, currencyPattern) && Regex.IsMatch(to, currencyPattern))
+        {
+            if (from != to)
+            {
+
+
+            }
+            else
+            {
+                return 1.0F;
+            }
+        }
+        else
+        {
+            throw new FormatException("ERROR - The entered 'from' or 'to' currency format is wrong.");
+        }
+    }
+
+    /**
+     * <summary>
+     * Fetches current exchange rates from API and returns them as map.
+     * </summary>
+     * <param name="client"></param>
+     * <returns>Dictionary<string, float></returns>
+     */
+    static async Task<Dictionary<string, float>> GetExchangeRates(HttpClient client)
+    {
+        string jsonString;
+        try
+        {
+            jsonString = await client.GetStringAsync($"http://data.fixer.io/api/symbols?access_key={AccessKey}");
+        }
+        catch (HttpRequestException)
+        {
+            throw new HttpRequestException("ERROR - Failed to fetch exchange rates from API.");
+        }
+
+        // Create dictionary
+        Dictionary<string, float> exchangeRates = [];
+        JsonDocument json = JsonDocument.Parse(jsonString);
+        JsonElement rates = json.RootElement.GetProperty("rates");
+        foreach (JsonProperty prop in rates.EnumerateObject())
+        {
+            exchangeRates.Add(prop.Name, prop.Value.GetSingle());
+        }
+        return exchangeRates;
     }
 }
