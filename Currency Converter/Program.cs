@@ -41,7 +41,8 @@ internal class Program
 
                 string[] inputArgs = inputStr.Split();
                 float value = ParseInputValue(inputArgs[0]);
-
+                float exchangeFactor = await GetExchangeFactor(inputArgs[1], inputArgs[2], client);
+                Console.WriteLine($"{value * exchangeFactor} {inputArgs[2].ToUpper()}");
             }
             else
             {
@@ -100,7 +101,16 @@ internal class Program
         }
     }
 
-    static async float ExchangeValue(string from, string to, HttpClient client)
+    /**
+     * <summary>
+     * Returns the exchange factor to multiply with for conversion.
+     * </summary>
+     * <param name="from">currency to convert</param>
+     * <param name="to">result currency</param>
+     * <param name="client"></param>
+     * <returns></returns>
+     */
+    static async Task<float> GetExchangeFactor(string from, string to, HttpClient client)
     {
         from = from.ToUpper();
         to = to.ToUpper();
@@ -109,8 +119,17 @@ internal class Program
         {
             if (from != to)
             {
-
-
+                Dictionary<string, float> rates = await GetExchangeRates(client);
+                try
+                {
+                    float fromFactor = rates[from];
+                    float toFactor = rates[to];
+                    return (float)(Math.Pow(fromFactor, -1) * toFactor);
+                }
+                catch (KeyNotFoundException)
+                {
+                    throw new KeyNotFoundException("ERROR - The entered 'from' or 'to' currency does not exist.");
+                }
             }
             else
             {
@@ -135,7 +154,7 @@ internal class Program
         string jsonString;
         try
         {
-            jsonString = await client.GetStringAsync($"http://data.fixer.io/api/symbols?access_key={AccessKey}");
+            jsonString = await client.GetStringAsync($"http://data.fixer.io/api/latest?access_key={AccessKey}");
         }
         catch (HttpRequestException)
         {
